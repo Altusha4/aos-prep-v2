@@ -6,6 +6,7 @@ function Sidebar({ view, setView, store, lectures, mobileOpen, setMobileOpen }) 
     { kind: 'dashboard', label: 'Dashboard', icon: '◇' },
     { kind: 'review', label: 'Mistakes Review', icon: '↺' },
     { kind: 'final', label: 'Final Mixed Exam', icon: '✦' },
+    { kind: 'cheatsheet', label: 'Cheat Sheet · Шпаргалка', icon: '⚡' },
     { kind: 'glossary', label: 'Glossary · Глоссарий', icon: '⌘' },
     { kind: 'progress', label: 'Progress Tracker', icon: '▤' },
   ];

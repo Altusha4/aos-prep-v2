@@ -28,6 +28,8 @@ function App() {
     content = <ProgressPage store={store} setView={setView} update={update} />;
   } else if (view.kind === 'glossary') {
     content = <Glossary setView={setView} />;
+  } else if (view.kind === 'cheatsheet') {
+    content = <CheatSheet setView={setView} />;
   } else {
     content = <Dashboard store={store} setView={setView} lectures={lectures} />;
   }
