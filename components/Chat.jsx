@@ -1,7 +1,7 @@
-/* Chat.jsx — floating AI tutor powered by Gemini */
+/* Chat.jsx — floating AI tutor powered by OpenAI */
 function Chat({ view }) {
   const [open, setOpen] = React.useState(false);
-  const [apiKey, setApiKey] = React.useState(() => localStorage.getItem('aos-gemini-key') || '');
+  const [apiKey, setApiKey] = React.useState(() => localStorage.getItem('aos-openai-key') || '');
   const [keyInput, setKeyInput] = React.useState('');
   const [messages, setMessages] = React.useState([]);
   const [input, setInput] = React.useState('');
@@ -41,14 +41,14 @@ function Chat({ view }) {
   function saveKey() {
     const k = keyInput.trim();
     if (!k) return;
-    localStorage.setItem('aos-gemini-key', k);
+    localStorage.setItem('aos-openai-key', k);
     setApiKey(k);
     setKeyInput('');
     setError('');
   }
 
   function removeKey() {
-    localStorage.removeItem('aos-gemini-key');
+    localStorage.removeItem('aos-openai-key');
     setApiKey('');
     setMessages([]);
   }
@@ -86,28 +86,32 @@ function Chat({ view }) {
     setError('');
 
     try {
-      const contents = newMessages.map(m => ({
-        role: m.role === 'user' ? 'user' : 'model',
-        parts: [{ text: m.text }],
-      }));
+      const messages_payload = [
+        { role: 'system', content: buildSystemPrompt() },
+        ...newMessages.map(m => ({
+          role: m.role === 'user' ? 'user' : 'assistant',
+          content: m.text,
+        })),
+      ];
 
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: buildSystemPrompt() }] },
-            contents,
-            generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
-          }),
-        }
-      );
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: messages_payload,
+          temperature: 0.7,
+          max_tokens: 1024,
+        }),
+      });
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         const msg = err?.error?.message || `HTTP ${res.status}`;
-        if (res.status === 400 && msg.toLowerCase().includes('api key')) {
+        if (res.status === 401) {
           setError('Неверный API ключ. Проверьте и введите снова. / Invalid API key.');
           removeKey();
         } else {
@@ -117,7 +121,7 @@ function Chat({ view }) {
       }
 
       const data = await res.json();
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '…';
+      const reply = data.choices?.[0]?.message?.content || '…';
       setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
     } catch (e) {
       setMessages(prev => [...prev, { role: 'error', text: `Ошибка / Error: ${e.message}` }]);
@@ -168,10 +172,10 @@ function Chat({ view }) {
         {!apiKey ? (
           <div className="chat-setup">
             <div className="chat-setup-icon">🔑</div>
-            <div className="chat-setup-title">Нужен Gemini API ключ</div>
+            <div className="chat-setup-title">Нужен OpenAI API ключ</div>
             <div className="chat-setup-desc">
-              Получи бесплатный ключ за 1 минуту:<br />
-              <strong>aistudio.google.com</strong> → Get API Key<br />
+              Найди свой ключ здесь:<br />
+              <strong>platform.openai.com/api-keys</strong><br />
               <span style={{ color: 'var(--muted)', fontSize: 12 }}>
                 Ключ сохраняется только в твоём браузере.
               </span>
@@ -181,7 +185,7 @@ function Chat({ view }) {
               ref={inputRef}
               className="chat-key-input"
               type="password"
-              placeholder="AIzaSy..."
+              placeholder="sk-..."
               value={keyInput}
               onChange={e => setKeyInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && saveKey()}
@@ -262,7 +266,7 @@ function Chat({ view }) {
               </button>
             </div>
             <div className="chat-footer">
-              Gemini 1.5 Flash · бесплатно ·{' '}
+              GPT-4o mini · OpenAI ·{' '}
               <span
                 style={{ cursor: 'pointer', textDecoration: 'underline', color: 'var(--muted)' }}
                 onClick={removeKey}
