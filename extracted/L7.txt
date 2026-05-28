@@ -1,0 +1,682 @@
+Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Lecture 7:
+File-System Interface.
+File System Implementation.
+
+-- 1 of 50 --
+
+13.2 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Lecture 7: File-System Interface
+ File Concept
+ Access Methods
+ Disk and Directory Structure
+ File-System Mounting
+ File Sharing
+ Protection
+ File-System Structure
+ File-System Operations
+ Directory Implementation
+ Allocation Methods
+
+-- 2 of 50 --
+
+13.3 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Objectives
+ To explain the function of file systems
+ To describe the interfaces to file systems
+ To discuss file-system design tradeoffs, including access
+methods, file sharing, file locking, and directory structures
+ To explore file-system protection
+ To describe the details of implementing local file systems
+and directory structures
+ To describe the implementation of remote file systems
+
+-- 3 of 50 --
+
+13.4 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File Concept
+ Contiguous logical address space
+ Types:
+ Data
+ numeric
+ character
+ binary
+ Program
+ Contents defined by file’s creator
+ Many types
+ Consider text file, source file, executable file
+
+-- 4 of 50 --
+
+13.5 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File Attributes
+ Name – only information kept in human-readable form
+ Identifier – unique tag (number) identifies file within file system
+ Type – needed for systems that support different types
+ Location – pointer to file location on device
+ Size – current file size
+ Protection – controls who can do reading, writing, executing
+ Time, date, and user identification – data for protection, security,
+and usage monitoring
+ Information about files are kept in the directory structure, which is
+maintained on the disk
+ Many variations, including extended file attributes such as file
+checksum
+ Information kept in the directory structure
+
+-- 5 of 50 --
+
+13.6 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File info Window on Mac OS X
+
+-- 6 of 50 --
+
+13.7 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File Operations
+ File is an abstract data type
+ Create
+ Write – at write pointer location
+ Read – at read pointer location
+ Reposition within file - seek
+ Delete
+ Truncate
+ Open(Fi) – search the directory structure on disk for entry Fi,
+and move the content of entry to memory
+ Close (Fi) – move the content of entry Fi in memory to
+directory structure on disk
+
+-- 7 of 50 --
+
+13.8 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Open Files
+ Several pieces of data are needed to manage open files:
+ Open-file table: tracks open files
+ File pointer: pointer to last read/write location, per
+process that has the file open
+ File-open count: counter of number of times a file is
+open – to allow removal of data from open-file table when
+last processes closes it
+ Disk location of the file: cache of data access information
+ Access rights: per-process access mode information
+
+-- 8 of 50 --
+
+13.9 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Open File Locking
+ Provided by some operating systems and file systems
+ Similar to reader-writer locks
+ Shared lock similar to reader lock – several processes can
+acquire concurrently
+ Exclusive lock similar to writer lock
+ Mediates access to a file
+ Mandatory or advisory:
+ Mandatory – access is denied depending on locks held and
+requested
+ Advisory – processes can find status of locks and decide
+what to do
+
+-- 9 of 50 --
+
+13.10 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File Types – Name, Extension
+
+-- 10 of 50 --
+
+13.11 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File Structure
+ None - sequence of words, bytes
+ Simple record structure
+ Lines
+ Fixed length
+ Variable length
+ Complex Structures
+ Formatted document
+ Relocatable load file
+ Can simulate last two with first method by inserting
+appropriate control characters
+ Who decides:
+ Operating system
+ Program
+
+-- 11 of 50 --
+
+13.12 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Sequential-access File
+
+-- 12 of 50 --
+
+13.13 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Access Methods
+ Sequential Access
+read next
+write next
+reset
+no read after last write
+(rewrite)
+ Direct Access – file is fixed length logical records
+read n
+write n
+position to n
+read next
+write next
+rewrite n
+n = relative block number
+ Relative block numbers allow OS to decide where file should be placed
+ See allocation problem in Ch 12
+
+-- 13 of 50 --
+
+13.14 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Other Access Methods
+ Can be built on top of base methods
+ General involve creation of an index for the file
+ Keep index in memory for fast determination of location of
+data to be operated on (consider UPC code plus record of
+data about that item)
+ If too large, index (in memory) of the index (on disk)
+ IBM indexed sequential-access method (ISAM)
+ Small master index, points to disk blocks of secondary
+index
+ File kept sorted on a defined key
+ All done by the OS
+ VMS operating system provides index and relative files as
+another example (see next slide)
+
+-- 14 of 50 --
+
+13.15 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Directory Structure
+ A collection of nodes containing information about all files
+F 1 F 2 F 3 F 4
+F n
+Directory
+Files
+Both the directory structure and the files reside on disk
+
+-- 15 of 50 --
+
+13.16 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Disk Structure
+ Disk can be subdivided into partitions
+ Disks or partitions can be RAID protected against failure
+ Disk or partition can be used raw – without a file system, or
+formatted with a file system
+ Partitions also known as minidisks, slices
+ Entity containing file system known as a volume
+ Each volume containing file system also tracks that file
+system’s info in device directory or volume table of contents
+ As well as general-purpose file systems there are many
+special-purpose file systems, frequently all within the same
+operating system or computer
+
+-- 16 of 50 --
+
+13.17 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+A Typical File-system Organization
+
+-- 17 of 50 --
+
+13.18 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Types of File Systems
+ We mostly talk of general-purpose file systems
+ But systems frequently have may file systems, some general- and
+some special- purpose
+ Consider Solaris has
+ tmpfs – memory-based volatile FS for fast, temporary I/O
+ objfs – interface into kernel memory to get kernel symbols for
+debugging
+ ctfs – contract file system for managing daemons
+ lofs – loopback file system allows one FS to be accessed in
+place of another
+ procfs – kernel interface to process structures
+ ufs, zfs – general purpose file systems
+
+-- 18 of 50 --
+
+13.19 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Operations Performed on Directory
+ Search for a file
+ Create a file
+ Delete a file
+ List a directory
+ Rename a file
+ Traverse the file system
+
+-- 19 of 50 --
+
+13.20 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Directory Organization
+ Efficiency – locating a file quickly
+ Naming – convenient to users
+ Two users can have same name for different files
+ The same file can have several different names
+ Grouping – logical grouping of files by properties, (e.g., all
+Java programs, all games, …)
+The directory is organized logically to obtain
+
+-- 20 of 50 --
+
+13.21 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Single-Level Directory
+ A single directory for all users
+ Naming problem
+ Grouping problem
+
+-- 21 of 50 --
+
+13.22 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Two-Level Directory
+ Separate directory for each user
+ Path name
+ Can have the same file name for different user
+ Efficient searching
+ No grouping capability
+
+-- 22 of 50 --
+
+13.23 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File Sharing
+ Sharing of files on multi-user systems is desirable
+ Sharing may be done through a protection scheme
+ On distributed systems, files may be shared across a network
+ Network File System (NFS) is a common distributed file-sharing
+method
+ If multi-user system
+ User IDs identify users, allowing permissions and
+protections to be per-user
+Group IDs allow users to be in groups, permitting group
+access rights
+ Owner of a file / directory
+ Group of a file / directory
+
+-- 23 of 50 --
+
+13.24 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File Sharing – Remote File Systems
+ Uses networking to allow file system access between systems
+ Manually via programs like FTP
+ Automatically, seamlessly using distributed file systems
+ Semi automatically via the world wide web
+ Client-server model allows clients to mount remote file systems from
+servers
+ Server can serve multiple clients
+ Client and user-on-client identification is insecure or complicated
+ NFS is standard UNIX client-server file sharing protocol
+ CIFS is standard Windows protocol
+ Standard operating system file calls are translated into remote calls
+ Distributed Information Systems (distributed naming services) such
+as LDAP, DNS, NIS, Active Directory implement unified access to
+information needed for remote computing
+
+-- 24 of 50 --
+
+13.25 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File Sharing – Failure Modes
+ All file systems have failure modes
+ For example corruption of directory structures or other non-
+user data, called metadata
+ Remote file systems add new failure modes, due to network
+failure, server failure
+ Recovery from failure can involve state information about
+status of each remote request
+ Stateless protocols such as NFS v3 include all information in
+each request, allowing easy recovery but less security
+
+-- 25 of 50 --
+
+13.26 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File Sharing – Consistency Semantics
+ Specify how multiple users are to access a shared file
+simultaneously
+ Similar to Ch 5 process synchronization algorithms
+ Tend to be less complex due to disk I/O and network
+latency (for remote file systems
+ Andrew File System (AFS) implemented complex remote file
+sharing semantics
+ Unix file system (UFS) implements:
+ Writes to an open file visible immediately to other users of
+the same open file
+ Sharing file pointer to allow multiple users to read and write
+concurrently
+ AFS has session semantics
+ Writes only visible to sessions starting after the file is
+closed
+
+-- 26 of 50 --
+
+13.27 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Protection
+ File owner/creator should be able to control:
+ what can be done
+ by whom
+ Types of access
+ Read
+ Write
+ Execute
+ Append
+ Delete
+ List
+
+-- 27 of 50 --
+
+13.28 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Access Lists and Groups
+ Mode of access: read, write, execute
+ Three classes of users on Unix / Linux
+RWX
+a) owner access 7  1 1 1
+RWX
+b) group access 6  1 1 0
+RWX
+c) public access 1  0 0 1
+ Ask manager to create a group (unique name), say G, and add
+some users to the group.
+ For a particular file (say game) or subdirectory, define an
+appropriate access.
+Attach a group to a file
+chgrp G game
+
+-- 28 of 50 --
+
+13.29 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+A Sample UNIX Directory Listing
+
+-- 29 of 50 --
+
+13.30 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File-System Structure
+ File structure
+ Logical storage unit
+ Collection of related information
+ File system resides on secondary storage (disks)
+ Provided user interface to storage, mapping logical to physical
+ Provides efficient and convenient access to disk by allowing
+data to be stored, located retrieved easily
+ Disk provides in-place rewrite and random access
+ I/O transfers performed in blocks of sectors (usually 512
+bytes)
+ File control block – storage structure consisting of information
+about a file
+ Device driver controls the physical device
+ File system organized into layers
+
+-- 30 of 50 --
+
+13.31 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Layered File System
+
+-- 31 of 50 --
+
+13.32 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File System Layers
+ Device drivers manage I/O devices at the I/O control layer
+ Given commands like “read drive1, cylinder 72, track 2, sector
+10, into memory location 1060” outputs low-level hardware
+specific commands to hardware controller
+ Basic file system given command like “retrieve block 123”
+translates to device driver
+ Also manages memory buffers and caches (allocation, freeing,
+replacement)
+ Buffers hold data in transit
+ Caches hold frequently used data
+ File organization module understands files, logical address, and
+physical blocks
+ Translates logical block # to physical block #
+ Manages free space, disk allocation
+
+-- 32 of 50 --
+
+13.33 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File System Layers (Cont.)
+ Logical file system manages metadata information
+ Translates file name into file number, file handle, location by
+maintaining file control blocks (inodes in UNIX)
+ Directory management
+ Protection
+ Layering useful for reducing complexity and redundancy, but
+adds overhead and can decrease performanceTranslates file
+name into file number, file handle, location by maintaining file
+control blocks (inodes in UNIX)
+ Logical layers can be implemented by any coding method
+according to OS designer
+
+-- 33 of 50 --
+
+13.34 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File System Layers (Cont.)
+ Many file systems, sometimes many within an operating
+system
+ Each with its own format (CD-ROM is ISO 9660; Unix has
+UFS, FFS; Windows has FAT, FAT32, NTFS as well as
+floppy, CD, DVD Blu-ray, Linux has more than 40 types,
+with extended file system ext2 and ext3 leading; plus
+distributed file systems, etc.)
+ New ones still arriving – ZFS, GoogleFS, Oracle ASM,
+FUSE
+
+-- 34 of 50 --
+
+13.35 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File-System Implementation
+ We have system calls at the API level, but how do we implement
+their functions?
+ On-disk and in-memory structures
+ Boot control block contains info needed by system to boot OS
+from that volume
+ Needed if volume contains OS, usually first block of volume
+ Volume control block (superblock, master file table) contains
+volume details
+ Total # of blocks, # of free blocks, block size, free block
+pointers or array
+ Directory structure organizes the files
+ Names and inode numbers, master file table
+
+-- 35 of 50 --
+
+13.36 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File-System Implementation (Cont.)
+ Per-file File Control Block (FCB) contains many details about
+the file
+ inode number, permissions, size, dates
+ NFTS stores into in master file table using relational DB
+structures
+
+-- 36 of 50 --
+
+13.37 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+In-Memory File System Structures
+ Mount table storing file system mounts, mount points, file
+system types
+ The following figure illustrates the necessary file system
+structures provided by the operating systems
+ Figure 12-3(a) refers to opening a file
+ Figure 12-3(b) refers to reading a file
+ Plus buffers hold data blocks from secondary storage
+ Open returns a file handle for subsequent use
+ Data from read eventually copied to specified user process
+memory address
+
+-- 37 of 50 --
+
+13.38 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Directory Implementation
+ Linear list of file names with pointer to the data blocks
+ Simple to program
+ Time-consuming to execute
+ Linear search time
+ Could keep ordered alphabetically via linked list or use
+B+ tree
+ Hash Table – linear list with hash data structure
+ Decreases directory search time
+ Collisions – situations where two file names hash to the
+same location
+ Only good if entries are fixed size, or use chained-overflow
+method
+
+-- 38 of 50 --
+
+13.39 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Allocation Methods - Contiguous
+ An allocation method refers to how disk blocks are allocated for
+files:
+ Contiguous allocation – each file occupies set of contiguous
+blocks
+ Best performance in most cases
+ Simple – only starting location (block #) and length (number
+of blocks) are required
+ Problems include finding space for file, knowing file size,
+external fragmentation, need for compaction off-line
+(downtime) or on-line
+
+-- 39 of 50 --
+
+13.40 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Extent-Based Systems
+ Many newer file systems (i.e., Veritas File System) use a
+modified contiguous allocation scheme
+ Extent-based file systems allocate disk blocks in extents
+ An extent is a contiguous block of disks
+ Extents are allocated for file allocation
+ A file consists of one or more extents
+
+-- 40 of 50 --
+
+13.41 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Allocation Methods - Linked
+ Linked allocation – each file a linked list of blocks
+ File ends at nil pointer
+ No external fragmentation
+ Each block contains pointer to next block
+ No compaction, external fragmentation
+ Free space management system called when new block
+needed
+ Improve efficiency by clustering blocks into groups but
+increases internal fragmentation
+ Reliability can be a problem
+ Locating a block can take many I/Os and disk seeks
+
+-- 41 of 50 --
+
+13.42 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Allocation Methods – Linked (Cont.)
+ FAT (File Allocation Table) variation
+ Beginning of volume has table, indexed by block number
+ Much like a linked list, but faster on disk and cacheable
+ New block allocation simple
+
+-- 42 of 50 --
+
+13.43 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Linked Allocation
+ Each file is a linked list of disk blocks: blocks may be scattered
+anywhere on the disk
+pointer	block =
+ Mapping
+Block to be accessed is the Qth block in the linked chain of blocks
+representing the file.
+Displacement into block = R + 1
+LA/511
+Q
+R
+
+-- 43 of 50 --
+
+13.44 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Free-Space Management
+ File system maintains free-space list to track available blocks/clusters
+ (Using term “block” for simplicity)
+ Bit vector or bit map (n blocks)
+…
+0 1 2 n-1
+bit[i] =
+
+ 
+1  block[i] free
+0  block[i] occupied
+Block number calculation
+(number of bits per word) *
+(number of 0-value words) +
+offset of first 1 bit
+CPUs have instructions to return offset within word of first “1” bit
+
+-- 44 of 50 --
+
+13.45 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Free-Space Management (Cont.)
+ Grouping
+ Modify linked list to store address of next n-1 free blocks in first
+free block, plus a pointer to next block that contains free-block-
+pointers (like this one)
+ Counting
+ Because space is frequently contiguously used and freed, with
+contiguous-allocation allocation, extents, or clustering
+ Keep address of first free block and count of following free
+blocks
+ Free space list then has entries containing addresses and
+counts
+
+-- 45 of 50 --
+
+13.46 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Free-Space Management (Cont.)
+ Space Maps
+ Used in ZFS
+ Consider meta-data I/O on very large file systems
+ Full data structures like bit maps couldn’t fit in memory ->
+thousands of I/Os
+ Divides device space into metaslab units and manages metaslabs
+ Given volume can contain hundreds of metaslabs
+ Each metaslab has associated space map
+ Uses counting algorithm
+ But records to log file rather than file system
+ Log of all block activity, in time order, in counting format
+ Metaslab activity -> load space map into memory in balanced-tree
+structure, indexed by offset
+ Replay log into that structure
+ Combine contiguous free blocks into single entry
+
+-- 46 of 50 --
+
+13.47 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Efficiency and Performance
+ Efficiency dependent on:
+ Disk allocation and directory algorithms
+ Types of data kept in file’s directory entry
+ Pre-allocation or as-needed allocation of metadata
+structures
+ Fixed-size or varying-size data structures
+
+-- 47 of 50 --
+
+13.48 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Efficiency and Performance (Cont.)
+ Performance
+ Keeping data and metadata close together
+ Buffer cache – separate section of main memory for frequently
+used blocks
+ Synchronous writes sometimes requested by apps or needed
+by OS
+ No buffering / caching – writes must hit disk before
+acknowledgement
+ Asynchronous writes more common, buffer-able, faster
+ Free-behind and read-ahead – techniques to optimize
+sequential access
+ Reads frequently slower than writes
+
+-- 48 of 50 --
+
+13.49 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Page Cache
+ A page cache caches pages rather than disk blocks using virtual
+memory techniques and addresses
+ Memory-mapped I/O uses a page cache
+ Routine I/O through the file system uses the buffer (disk) cache
+ This leads to the following figure
+
+-- 49 of 50 --
+
+Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Thank you
+
+-- 50 of 50 --
+

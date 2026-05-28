@@ -1,0 +1,670 @@
+Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Chapter 15: File System
+Internals. Windows 10
+
+-- 1 of 49 --
+
+21.2 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Chapter 15: File System Internals
+ File Systems
+ File-System Mounting
+ Partitions and Mounting
+ File Sharing
+ Design Principles Windows
+ System Components Windows
+ Memory Management Windows
+
+-- 2 of 49 --
+
+21.3 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Partitions and Mounting
+ Partition can be a volume containing a file system (“cooked”) or
+raw – just a sequence of blocks with no file system
+ Boot block can point to boot volume or boot loader set of blocks that
+contain enough code to know how to load the kernel from the file
+system
+ Or a boot management program for multi-os booting
+ Root partition contains the OS, other partitions can hold other
+Oses, other file systems, or be raw
+ Mounted at boot time
+ Other partitions can mount automatically or manually
+ At mount time, file system consistency checked
+ Is all metadata correct?
+ If not, fix it, try again
+ If yes, add to mount table, allow access
+
+-- 3 of 49 --
+
+21.4 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Virtual File Systems
+ Virtual File Systems (VFS) on Unix provide an object-oriented
+way of implementing file systems
+ VFS allows the same system call interface (the API) to be used
+for different types of file systems
+ Separates file-system generic operations from
+implementation details
+ Implementation can be one of many file systems types, or
+network file system
+ Implements vnodes which hold inodes or network file
+details
+ Then dispatches operation to appropriate file system
+implementation routines
+
+-- 4 of 49 --
+
+21.5 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Virtual File Systems (Cont.)
+ The API is to the VFS interface, rather than any specific type of
+file system
+
+-- 5 of 49 --
+
+21.6 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Virtual File System Implementation
+ For example, Linux has four object types:
+ inode, file, superblock, dentry
+ VFS defines set of operations on the objects that must be
+implemented
+ Every object has a pointer to a function table
+ Function table has addresses of routines to implement that
+function on that object
+ For example:
+ • int open(. . .)—Open a file
+ • int close(. . .)—Close an already-open file
+ • ssize t read(. . .)—Read from a file
+ • ssize t write(. . .)—Write to a file
+ • int mmap(. . .)—Memory-map a file
+
+-- 6 of 49 --
+
+21.7 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+The Sun Network File System (NFS)
+ An implementation and a specification of a software system
+for accessing remote files across LANs (or WANs)
+ The implementation is part of the Solaris and SunOS
+operating systems running on Sun workstations using an
+unreliable datagram protocol (UDP/IP protocol and Ethernet
+
+-- 7 of 49 --
+
+21.8 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+NFS (Cont.)
+ Interconnected workstations viewed as a set of independent machines
+with independent file systems, which allows sharing among these file
+systems in a transparent manner
+ A remote directory is mounted over a local file system directory
+ The mounted directory looks like an integral subtree of the local
+file system, replacing the subtree descending from the local
+directory
+ Specification of the remote directory for the mount operation is
+nontransparent; the host name of the remote directory has to be
+provided
+ Files in the remote directory can then be accessed in a
+transparent manner
+ Subject to access-rights accreditation, potentially any file system
+(or directory within a file system), can be mounted remotely on top
+of any local directory
+
+-- 8 of 49 --
+
+21.9 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+NFS (Cont.)
+ NFS is designed to operate in a heterogeneous environment of
+different machines, operating systems, and network architectures;
+the NFS specifications independent of these media
+ This independence is achieved through the use of RPC primitives
+built on top of an External Data Representation (XDR) protocol
+used between two implementation-independent interfaces
+ The NFS specification distinguishes between the services provided
+by a mount mechanism and the actual remote-file-access services
+
+-- 9 of 49 --
+
+21.10 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Three Independent File Systems
+
+-- 10 of 49 --
+
+21.11 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Mounting in NFS
+Mounts Cascading mounts
+
+-- 11 of 49 --
+
+21.12 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+NFS Mount Protocol
+ Establishes initial logical connection between server and client
+ Mount operation includes name of remote directory to be mounted
+and name of server machine storing it
+ Mount request is mapped to corresponding RPC and forwarded
+to mount server running on server machine
+ Export list – specifies local file systems that server exports for
+mounting, along with names of machines that are permitted to
+mount them
+ Following a mount request that conforms to its export list, the
+server returns a file handle—a key for further accesses
+ File handle – a file-system identifier, and an inode number to
+identify the mounted directory within the exported file system
+ The mount operation changes only the user’s view and does not
+affect the server side
+
+-- 12 of 49 --
+
+21.13 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+NFS Protocol
+ Provides a set of remote procedure calls for remote file operations.
+The procedures support the following operations:
+ searching for a file within a directory
+ reading a set of directory entries
+ manipulating links and directories
+ accessing file attributes
+ reading and writing files
+ NFS servers are stateless; each request has to provide a full set
+of arguments (NFS V4 is just coming available – very different,
+stateful)
+ Modified data must be committed to the server’s disk before
+results are returned to the client (lose advantages of caching)
+ The NFS protocol does not provide concurrency-control
+mechanisms
+
+-- 13 of 49 --
+
+21.14 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Three Major Layers of NFS Architecture
+ UNIX file-system interface (based on the open, read, write, and
+close calls, and file descriptors)
+ Virtual File System (VFS) layer – distinguishes local files from
+remote ones, and local files are further distinguished according to
+their file-system types
+ The VFS activates file-system-specific operations to handle
+local requests according to their file-system types
+ Calls the NFS protocol procedures for remote requests
+ NFS service layer – bottom layer of the architecture
+ Implements the NFS protocol
+
+-- 14 of 49 --
+
+21.15 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Schematic View of NFS Architecture
+
+-- 15 of 49 --
+
+21.16 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+NFS Path-Name Translation
+ Performed by breaking the path into component names and
+performing a separate NFS lookup call for every pair of
+component name and directory vnode
+ To make lookup faster, a directory name lookup cache on the
+client’s side holds the vnodes for remote directory names
+
+-- 16 of 49 --
+
+21.17 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+NFS Remote Operations
+ Nearly one-to-one correspondence between regular UNIX system
+calls and the NFS protocol RPCs (except opening and closing
+files)
+ NFS adheres to the remote-service paradigm, but employs
+buffering and caching techniques for the sake of performance
+ File-blocks cache – when a file is opened, the kernel checks with
+the remote server whether to fetch or revalidate the cached
+attributes
+ Cached file blocks are used only if the corresponding cached
+attributes are up to date
+ File-attribute cache – the attribute cache is updated whenever new
+attributes arrive from the server
+ Clients do not free delayed-write blocks until the server confirms
+that the data have been written to disk
+
+-- 17 of 49 --
+
+21.18 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Windows 10
+ 32-bit preemptive multitasking operating system for Intel microprocessors
+ Key goals for the system:
+ portability
+ security
+ POSIX compliance
+ multiprocessor support
+ extensibility
+ international support
+ compatibility with MS-DOS and MS-Windows applications.
+ Uses a micro-kernel architecture
+ Available in six client versions, Starter, Home Basic, Home Premium,
+Professional, Enterprise and Ultimate. With the exception of Starter edition
+(32-bit only) all are available in both 32-bit and 64-bit.
+ Available in three server versions (all 64-bit only), Standard, Enterprise and
+Datacenter
+
+-- 18 of 49 --
+
+21.19 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Design Principles
+ Extensibility — layered architecture
+ Executive, which runs in protected mode, provides the basic
+system services
+ On top of the executive, several server subsystems operate in
+user mode
+ Modular structure allows additional environmental subsystems to
+be added without affecting the executive
+ Portability — Windows 10 can be moved from one hardware
+architecture to another with relatively few changes
+ Written in C and C++
+ Processor-specific portions are written in assembly language for a
+given processor architecture (small amount of such code).
+ Platform-dependent code is isolated in a dynamic link library
+(DLL) called the “hardware abstraction layer” (HAL)
+
+-- 19 of 49 --
+
+21.20 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Design Principles (Cont.)
+ Reliability — Windows 10 uses hardware protection for virtual
+memory, and software protection mechanisms for operating
+system resources
+ Compatibility — applications that follow the IEEE 1003.1 (POSIX)
+standard can be complied to run on 10 without changing the
+source code
+ Performance — Windows 10 subsystems can communicate with
+one another via high-performance message passing
+ Preemption of low priority threads enables the system to
+respond quickly to external events
+ Designed for symmetrical multiprocessing
+ International support — supports different locales via the national
+language support (NLS) API
+
+-- 20 of 49 --
+
+21.21 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Windows 10 Architecture
+ Layered system of module
+ Protected mode — hardware abstraction layer (HAL),
+kernel, executive
+ User mode — collection of subsystems
+ Environmental subsystems emulate different operating
+systems
+ Protection subsystems provide security functions
+
+-- 21 of 49 --
+
+21.22 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Depiction of 10 Architecture
+
+-- 22 of 49 --
+
+21.23 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+ Foundation for the executive and the subsystems
+ Never paged out of memory; execution is never preempted
+ Four main responsibilities:
+ thread scheduling
+ interrupt and exception handling
+ low-level processor synchronization
+ recovery after a power failure
+ Kernel is object-oriented, uses two sets of objects
+ dispatcher objects control dispatching and synchronization
+(events, mutants, mutexes, semaphores, threads and
+timers)
+ control objects (asynchronous procedure calls, interrupts,
+power notify, power status, process and profile objects)
+System Components — Kernel
+
+-- 23 of 49 --
+
+21.24 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Kernel — Process and Threads
+ The process has a virtual memory address space, information
+(such as a base priority), and an affinity for one or more
+processors.
+ Threads are the unit of execution scheduled by the kernel’s
+dispatcher.
+ Each thread has its own state, including a priority, processor
+affinity, and accounting information.
+ A thread can be one of six states: ready, standby, running,
+waiting, transition, and terminated.
+
+-- 24 of 49 --
+
+21.25 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Kernel — Scheduling
+ The dispatcher uses a 32-level priority scheme to determine
+the order of thread execution.
+ Priorities are divided into two classes
+ The real-time class contains threads with priorities
+ranging from 16 to 31
+ The variable class contains threads having priorities
+from 0 to 15
+ Characteristics of Windows 7’s priority strategy
+ Trends to give very good response times to interactive
+threads that are using the mouse and windows
+ Enables I/O-bound threads to keep the I/O devices busy
+ Complete-bound threads soak up the spare CPU cycles
+in the background
+
+-- 25 of 49 --
+
+21.26 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Kernel — Scheduling (Cont.)
+ Scheduling can occur when a thread enters the ready or wait
+state, when a thread terminates, or when an application
+changes a thread’s priority or processor affinity
+ Real-time threads are given preferential access to the CPU;
+but 7 does not guarantee that a real-time thread will start to
+execute within any particular time limit .
+ This is known as soft realtime.
+
+-- 26 of 49 --
+
+21.27 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Kernel — Trap Handling
+ The kernel provides trap handling when exceptions and
+interrupts are generated by hardware of software.
+ Exceptions that cannot be handled by the trap handler are
+handled by the kernel's exception dispatcher.
+ The interrupt dispatcher in the kernel handles interrupts by
+calling either an interrupt service routine (such as in a device
+driver) or an internal kernel routine.
+ The kernel uses spin locks that reside in global memory to
+achieve multiprocessor mutual exclusion.
+
+-- 27 of 49 --
+
+21.28 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Executive — Object Manager
+ Windows 7 uses objects for all its services and entities; the
+object manger supervises the use of all the objects
+ Generates an object handle
+ Checks security
+ Keeps track of which processes are using each object
+ Objects are manipulated by a standard set of methods, namely
+create, open, close, delete, query name, parse
+and security.
+
+-- 28 of 49 --
+
+21.29 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Executive — Naming Objects
+ The Windows 7 executive allows almost any object to be given
+a name, which may be either permanent or temporary.
+Exceptions are process, thread and some others object types.
+ Object names are structured like file path names in MS-DOS
+and UNIX.
+ Windows 7 implements a symbolic link object, which is similar
+to symbolic links in UNIX that allow multiple nicknames or
+aliases to refer to the same file.
+ A process gets an object handle by creating an object by
+opening an existing one, by receiving a duplicated handle from
+another process, or by inheriting a handle from a parent
+process.
+ Each object is protected by an access control list.
+
+-- 29 of 49 --
+
+21.30 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Executive — Virtual Memory Manager
+ The design of the VM manager assumes that the underlying
+hardware supports virtual to physical mapping a paging
+mechanism, transparent cache coherence on multiprocessor
+systems, and virtual addressing aliasing.
+ The VM manager in Windows 7 uses a page-based
+management scheme with a page size of 4 KB.
+ The Windows 7 VM manager uses a two step process to
+allocate memory
+ The first step reserves a portion of the process’s address
+space
+ The second step commits the allocation by assigning
+space in the system’s paging file(s)
+
+-- 30 of 49 --
+
+21.31 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Virtual-Memory Layout
+
+-- 31 of 49 --
+
+21.32 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Virtual Memory Manager (Cont.)
+ The virtual address translation in Windows 7 uses several data
+structures
+ Each process has a page directory that contains 1024 page
+directory entries of size 4 bytes.
+ Each page directory entry points to a page table which
+contains 1024 page table entries (PTEs) of size 4 bytes.
+ Each PTE points to a 4 KB page frame in physical memory.
+ A 10-bit integer can represent all the values form 0 to 1023,
+therefore, can select any entry in the page directory, or in a page
+table.
+ This property is used when translating a virtual address pointer
+to a bye address in physical memory.
+ A page can be in one of six states: valid, zeroed, free standby,
+modified and bad.
+
+-- 32 of 49 --
+
+21.33 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Virtual-to-Physical Address Translation
+ 10 bits for page directory entry, 20 bits for page table entry, and
+12 bits for byte offset in page
+
+-- 33 of 49 --
+
+21.34 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Page File Page-Table Entry
+5 bits for page protection, 20 bits for page frame address, 4 bits to
+select a paging file, and 3 bits that describe the page state. V = 0
+
+-- 34 of 49 --
+
+21.35 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Executive — I/O Manager
+ The I/O manager is responsible for
+ file systems
+ cache management
+ device drivers
+ network drivers
+ Keeps track of which installable file systems are loaded, and
+manages buffers for I/O requests
+ Works with VM Manager to provide memory-mapped file I/O
+ Controls the Windows 7 cache manager, which handles
+caching for the entire I/O system
+ Supports both synchronous and asynchronous operations,
+provides time outs for drivers, and has mechanisms for one
+driver to call another
+
+-- 35 of 49 --
+
+21.36 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File I/O
+
+-- 36 of 49 --
+
+21.37 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File System
+ The fundamental structure of the Windows 7 file system (NTFS)
+is a volume
+ Created by the Windows 7 disk administrator utility
+ Based on a logical disk partition
+ May occupy a portions of a disk, an entire disk, or span
+across several disks
+ All metadata, such as information about the volume, is stored in
+a regular file
+ NTFS uses clusters as the underlying unit of disk allocation
+ A cluster is a number of disk sectors that is a power of two
+ Because the cluster size is smaller than for the 16-bit FAT
+file system, the amount of internal fragmentation is reduced
+
+-- 37 of 49 --
+
+21.38 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File System — Internal Layout
+ NTFS uses logical cluster numbers (LCNs) as disk addresses
+ A file in NTFS is not a simple byte stream, as in MS-DOS or
+UNIX, rather, it is a structured object consisting of attributes
+ Every file in NTFS is described by one or more records in an
+array stored in a special file called the Master File Table (MFT)
+ Each file on an NTFS volume has a unique ID called a file
+reference.
+ 64-bit quantity that consists of a 48-bit file number and a
+16-bit sequence number
+ Can be used to perform internal consistency checks
+ The NTFS name space is organized by a hierarchy of
+directories; the index root contains the top level of the B+ tree
+
+-- 38 of 49 --
+
+21.39 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File System — Recovery
+ All file system data structure updates are performed inside
+transactions that are logged.
+ Before a data structure is altered, the transaction writes a
+log record that contains redo and undo information.
+ After the data structure has been changed, a commit
+record is written to the log to signify that the transaction
+succeeded.
+ After a crash, the file system data structures can be
+restored to a consistent state by processing the log
+records.
+
+-- 39 of 49 --
+
+21.40 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+File System — Recovery (Cont.)
+ This scheme does not guarantee that all the user file data can
+be recovered after a crash, just that the file system data
+structures (the metadata files) are undamaged and reflect
+some consistent state prior to the crash.
+ The log is stored in the third metadata file at the beginning of
+the volume.
+ The logging functionality is provided by the Windows 7 log file
+service.
+
+-- 40 of 49 --
+
+21.41 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Networking
+ Windows 7 supports both peer-to-peer and client/server
+networking; it also has facilities for network management.
+ To describe networking in Windows 7, we refer to two of the
+internal networking interfaces:
+ NDIS (Network Device Interface Specification) — Separates
+network adapters from the transport protocols so that either
+can be changed without affecting the other.
+ TDI (Transport Driver Interface) — Enables any session layer
+component to use any available transport mechanism.
+ Windows 7 implements transport protocols as drivers that can be
+loaded and unloaded from the system dynamically.
+
+-- 41 of 49 --
+
+21.42 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Networking — Protocols
+ The server message block (SMB) protocol is used to send I/O
+requests over the network. It has four message types:
+1. Session control
+2. File
+3. Printer
+4. Message
+ The network basic Input/Output system (NetBIOS) is a hardware
+abstraction interface for networks
+ Used to:
+ Establish logical names on the network
+ Establish logical connections of sessions between two
+logical names on the network
+ Support reliable data transfer for a session via NetBIOS
+requests or SMBs
+
+-- 42 of 49 --
+
+21.43 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Networking — Protocols (Cont.)
+ Windows 7 uses the TCP/IP Internet protocol version 4 and
+version 6 to connect to a wide variety of operating systems
+and hardware platforms.
+ PPTP (Point-to-Point Tunneling Protocol) is used to
+communicate between Remote Access Server modules
+running on Windows 7 machines that are connected over the
+Internet.
+ The Data Link Control protocol (DLC) is used to access IBM
+mainframes and HP printers that are directly connected to the
+network (possible on 32-bit only versions using unsigned
+drivers).
+
+-- 43 of 49 --
+
+21.44 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Networking — Domains
+ NT uses the concept of a domain to manage global access rights
+within groups.
+ A domain is a group of machines running NT server that share a
+common security policy and user database.
+ Windows 7 provides three models of setting up trust relationships
+ One way, A trusts B
+ Two way, transitive, A trusts B, B trusts C so A, B, C trust
+each other
+ Crosslink – allows authentication to bypass hierarchy to cut
+down on authentication traffic.
+
+-- 44 of 49 --
+
+21.45 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Name Resolution in TCP/IP Networks
+ On an IP network, name resolution is the process of converting
+a computer name to an IP address
+ e.g., www.bell-labs.com resolves to 135.104.1.14
+ Windows 7 provides several methods of name resolution:
+ Windows Internet Name Service (WINS)
+ broadcast name resolution
+ domain name system (DNS)
+ a host file
+ an LMHOSTS file
+
+-- 45 of 49 --
+
+21.46 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Name Resolution
+ WINS consists of two or more WINS servers that maintain a
+dynamic database of name to IP address bindings, and client
+software to query the servers.
+ WINS uses the Dynamic Host Configuration Protocol
+(DHCP), which automatically updates address configurations
+in the WINS database, without user or administrator
+intervention.
+
+-- 46 of 49 --
+
+21.47 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Programmer Interface — Memory Management
+ Virtual memory:
+ VirtualAlloc reserves or commits virtual memory
+ VirtualFree decommits or releases the memory
+ These functions enable the application to determine the
+virtual address at which the memory is allocated
+ An application can use memory by memory mapping a file
+into its address space
+ Multistage process
+ Two processes share memory by mapping the same file
+into their virtual memory
+
+-- 47 of 49 --
+
+21.48 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Memory Management (Cont.)
+ A heap in the Win32 environment is a region of reserved
+address space
+ A Win 32 process is created with a 1 MB default heap
+ Access is synchronized to protect the heap’s space
+allocation data structures from damage by concurrent
+updates by multiple threads
+ Because functions that rely on global or static data typically fail
+to work properly in a multithreaded environment, the thread-
+local storage mechanism allocates global storage on a per-
+thread basis
+ The mechanism provides both dynamic and static methods
+of creating thread-local storage
+
+-- 48 of 49 --
+
+Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Thank you
+
+-- 49 of 49 --
+

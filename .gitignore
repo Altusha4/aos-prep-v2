@@ -1,0 +1,5 @@
+.idea/
+pdfs/
+uploads/
+node_modules/
+.DS_Store

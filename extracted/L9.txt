@@ -1,0 +1,770 @@
+Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Lecture 9: Security &
+Protection
+
+-- 1 of 53 --
+
+16.2 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Lecture 9: Security & Protection
+ The Security Problem
+ Program Threats
+ System and Network Threats
+ Cryptography as a Security Tool
+ User Authentication
+ Implementing Security Defenses
+ Firewalling to Protect Systems and Networks
+ Computer-Security Classifications
+ An Example: Windows 7
+
+-- 2 of 53 --
+
+16.3 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Objectives
+ Discuss security threats and attacks
+ Explain the fundamentals of encryption, authentication, and
+hashing
+ Examine the uses of cryptography in computing
+ Describe the various countermeasures to security attacks
+
+-- 3 of 53 --
+
+16.4 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+The Security Problem
+ System secure if resources used and accessed as intended
+under all circumstances
+ Unachievable
+ Intruders (crackers) attempt to breach security
+ Threat is potential security violation
+ Attack is attempt to breach security
+ Attack can be accidental or malicious
+ Easier to protect against accidental than malicious misuse
+
+-- 4 of 53 --
+
+16.5 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Security Violation Categories
+ Breach of confidentiality
+ Unauthorized reading of data
+ Breach of integrity
+ Unauthorized modification of data
+ Breach of availability
+ Unauthorized destruction of data
+ Theft of service
+ Unauthorized use of resources
+ Denial of service (DOS)
+ Prevention of legitimate use
+
+-- 5 of 53 --
+
+16.6 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Security Violation Methods
+ Masquerading (breach authentication)
+ Pretending to be an authorized user to escalate privileges
+ Replay attack
+ As is or with message modification
+ Man-in-the-middle attack
+ Intruder sits in data flow, masquerading as sender to receiver
+and vice versa
+ Session hijacking
+ Intercept an already-established session to bypass
+authentication
+ Privilege escalation
+ Common attack type with access beyond what a user or
+resource is supposed to have
+
+-- 6 of 53 --
+
+16.7 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Security Measure Levels
+ Impossible to have absolute security, but make cost to
+perpetrator sufficiently high to deter most intruders
+ Security must occur at four levels to be effective:
+ Physical
+ Data centers, servers, connected terminals
+ Application
+ Benign or malicious apps can cause security problems
+ Operating System
+ Protection mechanisms, debugging
+ Network
+ Intercepted communications, interruption, DOS
+ Security is as weak as the weakest link in the chain
+ Humans a risk too via phishing and social-engineering
+attacks
+ But can too much security be a problem?
+
+-- 7 of 53 --
+
+16.8 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Program Threats
+ Many variations, many names
+ Trojan Horse
+ Code segment that misuses its environment
+ Exploits mechanisms for allowing programs written by users to be
+executed by other users
+ Spyware, pop-up browser windows, covert channels
+ Up to 80% of spam delivered by spyware-infected systems
+ Trap Door
+ Specific user identifier or password that circumvents normal
+security procedures
+ Could be included in a compiler
+ How to detect them?
+
+-- 8 of 53 --
+
+16.9 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Four-layered Model of Security
+
+-- 9 of 53 --
+
+16.10 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Program Threats (Cont.)
+ Malware - Software designed to exploit, disable, or damage computer
+ Trojan Horse – Program that acts in a clandestine manner
+ Spyware – Program frequently installed with legitimate software
+to display adds, capture user data
+ Ransomware – locks up data via encryption, demanding
+payment to unlock it
+ Others include trap doors, logic boms
+ All try to violate the Principle of Least Privilege
+ Goal frequently is to leave behind Remote Access Tool (RAT) for
+repeated access
+
+-- 10 of 53 --
+
+16.11 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Code Injection
+ Code-injection attack occurs when system code is not malicious
+but has bugs allowing executable code to be added or modified
+ Results from poor or insecure programming paradigms,
+commonly in low level languages like C or C++ which allow for
+direct memory access through pointers
+ Goal is a buffer overflow in which code is placed in a buffer
+and execution caused by the attack
+ Can be run by script kiddies – use tools written but exploit
+identifiers
+
+-- 11 of 53 --
+
+16.12 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Code Injection (cont.)
+ Outcomes from code injection include:
+ Frequently use trampoline to code
+execution to exploit buffer overflow:
+
+-- 12 of 53 --
+
+16.13 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Great Programming Required?
+ For the first step of determining the bug, and second step of
+writing exploit code, yes
+ Script kiddies can run pre-written exploit code to attack a given
+system
+ Attack code can get a shell with the processes’ owner’s
+permissions
+ Or open a network port, delete files, download a program, etc
+ Depending on bug, attack can be executed across a network
+using allowed connections, bypassing firewalls
+ Buffer overflow can be disabled by disabling stack execution or
+adding bit to page table to indicate “non-executable” state
+ Available in SPARC and x86
+ But still have security exploits
+
+-- 13 of 53 --
+
+16.14 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Program Threats (Cont.)
+ Viruses
+ Code fragment embedded in legitimate program
+ Self-replicating, designed to infect other computers
+ Very specific to CPU architecture, operating system, applications
+ Usually borne via email or as a macro
+ Visual Basic Macro to reformat hard drive
+Sub AutoOpen()
+Dim oFS
+Set oFS = CreateObject(’’Scripting.FileSystemObject’’)
+vs = Shell(’’c:command.com /k format c:’’,vbHide)
+End Sub
+
+-- 14 of 53 --
+
+16.15 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Program Threats (Cont.)
+ Virus dropper inserts virus onto the system
+ Many categories of viruses, literally many thousands of viruses
+ File / parasitic
+ Boot / memory
+ Macro
+ Source code
+ Polymorphic to avoid having a virus signature
+ Encrypted
+ Stealth
+ Tunneling
+ Multipartite
+ Armored
+
+-- 15 of 53 --
+
+16.16 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+A Boot-sector Computer Virus
+
+-- 16 of 53 --
+
+16.17 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+The Threat Continues
+ Attacks still common, still occurring
+ Attacks moved over time from science experiments to tools of
+organized crime
+ Targeting specific companies
+ Creating botnets to use as tool for spam and DDOS delivery
+ Keystroke logger to grab passwords, credit card numbers
+ Why is Windows the target for most attacks?
+ Most common
+ Everyone is an administrator
+ Licensing required?
+ Monoculture considered harmful
+
+-- 17 of 53 --
+
+16.18 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+System and Network Threats
+ Some systems “open” rather than secure by default
+ Reduce attack surface
+ But harder to use, more knowledge needed to administer
+ Network threats harder to detect, prevent
+ Protection systems weaker
+ More difficult to have a shared secret on which to base access
+ No physical limits once system attached to internet
+ Or on network with system attached to internet
+ Even determining location of connecting system difficult
+ IP address is only knowledge
+
+-- 18 of 53 --
+
+16.19 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+System and Network Threats (Cont.)
+ Worms – use spawn mechanism; standalone program
+ Internet worm
+ Exploited UNIX networking features (remote access) and bugs
+in finger and sendmail programs
+ Exploited trust-relationship mechanism used by rsh to access
+friendly systems without use of password
+ Grappling hook program uploaded main worm program
+ 99 lines of C code
+ Hooked system then uploaded main code, tried to attack
+connected systems
+ Also tried to break into other users accounts on local system via
+password guessing
+ If target system already infected, abort, except for every 7th time
+
+-- 19 of 53 --
+
+16.20 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+System and Network Threats (Cont.)
+ Port scanning
+ Automated attempt to connect to a range of ports on one
+or a range of IP addresses
+ Detection of answering service protocol
+ Detection of OS and version running on system
+ nmap scans all ports in a given IP range for a response
+ nessus has a database of protocols and bugs (and
+exploits) to apply against a system
+ Frequently launched from zombie systems
+ To decrease trace-ability
+
+-- 20 of 53 --
+
+16.21 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+System and Network Threats (Cont.)
+ Denial of Service
+ Overload the targeted computer preventing it from doing any
+useful work
+ Distributed Denial-of-Service (DDoS) come from multiple
+sites at once
+ Consider the start of the IP-connection handshake (SYN)
+ How many started-connections can the OS handle?
+ Consider traffic to a web site
+ How can you tell the difference between being a target
+and being really popular?
+ Accidental – CS students writing bad fork() code
+ Purposeful – extortion, punishment
+ Port scanning
+ Automated tool to look for network ports accepting
+connections
+ Used for good and evil
+
+-- 21 of 53 --
+
+16.22 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Standard Security Attacks
+
+-- 22 of 53 --
+
+16.23 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Cryptography as a Security Tool
+ Broadest security tool available
+ Internal to a given computer, source and destination of
+messages can be known and protected
+ OS creates, manages, protects process IDs,
+communication ports
+ Source and destination of messages on network cannot be
+trusted without cryptography
+ Local network – IP address?
+– Consider unauthorized host added
+ WAN / Internet – how to establish authenticity
+– Not via IP address
+
+-- 23 of 53 --
+
+16.24 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Cryptography
+ Means to constrain potential senders (sources) and / or
+receivers (destinations) of messages
+ Based on secrets (keys)
+ Enables
+ Confirmation of source
+ Receipt only by certain destination
+ Trust relationship between sender and receiver
+
+-- 24 of 53 --
+
+16.25 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Encryption
+ Constrains the set of possible receivers of a message
+ Encryption algorithm consists of
+ Set K of keys
+ Set M of Messages
+ Set C of ciphertexts (encrypted messages)
+ A function E : K → (M→C). That is, for each k  K, Ek is a
+function for generating ciphertexts from messages
+ Both E and Ek for any k should be efficiently computable
+functions
+ A function D : K → (C → M). That is, for each k
+ K, Dk is a
+function for generating messages from ciphertexts
+ Both D and Dk for any k should be efficiently computable
+functions
+
+-- 25 of 53 --
+
+16.26 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Encryption (Cont.)
+ An encryption algorithm must provide this essential property:
+Given a ciphertext c  C, a computer can compute m such
+that Ek(m) = c only if it possesses k
+ Thus, a computer holding k can decrypt ciphertexts to
+the plaintexts used to produce them, but a computer not
+holding k cannot decrypt ciphertexts
+ Since ciphertexts are generally exposed (for example,
+sent on the network), it is important that it be infeasible
+to derive k from the ciphertexts
+
+-- 26 of 53 --
+
+16.27 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Symmetric Encryption
+ Same key used to encrypt and decrypt
+ Therefore k must be kept secret
+ DES was most commonly used symmetric block-encryption algorithm (created
+by US Govt)
+ Encrypts a block of data at a time
+ Keys too short so now considered insecure
+ Triple-DES considered more secure
+ Algorithm used 3 times using 2 or 3 keys
+ For example
+ 2001 NIST adopted new block cipher - Advanced Encryption Standard (AES)
+ Keys of 128, 192, or 256 bits, works on 128 bit blocks
+ RC4 is most common symmetric stream cipher, but known to have
+vulnerabilities
+ Encrypts/decrypts a stream of bytes (i.e., wireless transmission)
+ Key is a input to pseudo-random-bit generator
+ Generates an infinite keystream
+
+-- 27 of 53 --
+
+16.28 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Secure Communication over Insecure Medium
+
+-- 28 of 53 --
+
+16.29 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Asymmetric Encryption
+ Public-key encryption based on each user having two keys:
+ public key – published key used to encrypt data
+ private key – key known only to individual user used to
+decrypt data
+ Must be an encryption scheme that can be made public
+without making it easy to figure out the decryption scheme
+ Most common is RSA block cipher
+ Efficient algorithm for testing whether or not a number is
+prime
+ No efficient algorithm is know for finding the prime factors
+of a number
+
+-- 29 of 53 --
+
+16.30 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Asymmetric Encryption (Cont.)
+ Formally, it is computationally infeasible to derive kd,N from
+ke,N, and so ke need not be kept secret and can be widely
+disseminated
+ ke is the public key
+ kd is the private key
+ N is the product of two large, randomly chosen prime
+numbers p and q (for example, p and q are 512 bits each)
+ Encryption algorithm is Eke,N(m) = mke mod N, where ke
+satisfies kekd mod (p−1)(q −1) = 1
+ The decryption algorithm is then Dkd,N(c) = ckd mod N
+
+-- 30 of 53 --
+
+16.31 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Encryption using RSA Asymmetric Cryptography
+
+-- 31 of 53 --
+
+16.32 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Cryptography (Cont.)
+ Note symmetric cryptography based on transformations,
+asymmetric based on mathematical functions
+ Asymmetric much more compute intensive
+ Typically not used for bulk data encryption
+
+-- 32 of 53 --
+
+16.33 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Authentication
+ Constraining set of potential senders of a message
+ Complementary to encryption
+ Also can prove message unmodified
+ Algorithm components
+ A set K of keys
+ A set M of messages
+ A set A of authenticators
+ A function S : K → (M→ A)
+ That is, for each k  K, Sk is a function for generating
+authenticators from messages
+ Both S and Sk for any k should be efficiently computable
+functions
+ A function V : K → (M × A→ {true, false}). That is, for each k  K,
+Vk is a function for verifying authenticators on messages
+ Both V and Vk for any k should be efficiently computable
+functions
+
+-- 33 of 53 --
+
+16.34 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Authentication (Cont.)
+ For a message m, a computer can generate an authenticator
+a  A such that Vk(m, a) = true only if it possesses k
+ Thus, computer holding k can generate authenticators on
+messages so that any other computer possessing k can
+verify them
+ Computer not holding k cannot generate authenticators on
+messages that can be verified using Vk
+ Since authenticators are generally exposed (for example,
+they are sent on the network with the messages themselves),
+it must not be feasible to derive k from the authenticators
+ Practically, if Vk(m,a) = true then we know m has not been
+modified and that send of message has k
+ If we share k with only one entity, know where the
+message originated
+
+-- 34 of 53 --
+
+16.35 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Authentication – Hash Functions
+ Basis of authentication
+ Creates small, fixed-size block of data message digest (hash
+value) from m
+ Hash Function H must be collision resistant on m
+ Must be infeasible to find an m
+’ ≠ m such that H(m) = H(m
+’)
+ If H(m) = H(m
+’), then m = m’
+ The message has not been modified
+ Common message-digest functions include MD5, which produces
+a 128-bit hash, and SHA-1, which outputs a 160-bit hash
+ Not useful as authenticators
+ For example H(m) can be sent with a message
+ But if H is known someone could modify m to m’ and recompute
+H(m’) and modification not detected
+ So must authenticate H(m)
+
+-- 35 of 53 --
+
+16.36 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Authentication - MAC
+ Symmetric encryption used in message-authentication code
+(MAC) authentication algorithm
+ Cryptographic checksum generated from message using secret
+key
+ Can securely authenticate short values
+ If used to authenticate H(m) for an H that is collision resistant,
+then obtain a way to securely authenticate long message by
+hashing them first
+ Note that k is needed to compute both Sk and Vk, so anyone
+able to compute one can compute the other
+
+-- 36 of 53 --
+
+16.37 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Authentication – Digital Signature
+ Based on asymmetric keys and digital signature algorithm
+ Authenticators produced are digital signatures
+ Very useful – anyone can verify authenticity of a message
+ In a digital-signature algorithm, computationally infeasible to
+derive ks from kv
+ V is a one-way function
+ Thus, kv is the public key and ks is the private key
+ Consider the RSA digital-signature algorithm
+ Similar to the RSA encryption algorithm, but the key use is
+reversed
+ Digital signature of message Sks (m) = H(m)ks mod N
+ The key ks again is a pair (d, N), where N is the product of
+two large, randomly chosen prime numbers p and q
+ Verification algorithm is Vkv(m, a) (akv mod N = H(m))
+ Where kv satisfies kvks mod (p − 1)(q − 1) = 1
+
+-- 37 of 53 --
+
+16.38 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Authentication (Cont.)
+ Why authentication if a subset of encryption?
+ Fewer computations (except for RSA digital signatures)
+ Authenticator usually shorter than message
+ Sometimes want authentication but not confidentiality
+ Signed patches et al
+ Can be basis for non-repudiation
+
+-- 38 of 53 --
+
+16.39 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Key Distribution
+ Delivery of symmetric key is huge challenge
+ Sometimes done out-of-band
+ Asymmetric keys can proliferate – stored on key ring
+ Even asymmetric key distribution needs care – man-
+in-the-middle attack
+
+-- 39 of 53 --
+
+16.40 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Digital Certificates
+ Proof of who or what owns a public key
+ Public key digitally signed a trusted party
+ Trusted party receives proof of identification from entity and
+certifies that public key belongs to entity
+ Certificate authority are trusted party – their public keys
+included with web browser distributions
+ They vouch for other authorities via digitally signing their
+keys, and so on
+
+-- 40 of 53 --
+
+16.41 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Man-in-the-middle Attack on Asymmetric Cryptography
+
+-- 41 of 53 --
+
+16.42 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Implementation of Cryptography
+ Can be done at various
+layers of ISO Reference
+Model
+ SSL at the Transport layer
+ Network layer is typically
+IPSec
+ IKE for key exchange
+ Basis of Virtual Private
+Networks (VPNs)
+ Why not just at lowest level?
+ Sometimes need more
+knowledge than available at
+low levels
+ i.e. User authentication
+ i.e. e-mail delivery
+Source:
+http://en.wikipedia.org/wiki/OSI_mo
+del
+
+-- 42 of 53 --
+
+16.43 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Encryption Example - TLS
+ Insertion of cryptography at one layer of the ISO network model
+(the transport layer)
+ SSL – Secure Socket Layer (also called TLS)
+ Cryptographic protocol that limits two computers to only exchange
+messages with each other
+ Very complicated, with many variations
+ Used between web servers and browsers for secure
+communication (credit card numbers)
+ The server is verified with a certificate assuring client is talking to
+correct server
+ Asymmetric cryptography used to establish a secure session key
+(symmetric encryption) for bulk of communication during session
+ Communication between each computer then uses symmetric key
+cryptography
+ More details in textbook
+
+-- 43 of 53 --
+
+16.44 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+User Authentication
+ Crucial to identify user correctly, as protection systems depend on user ID
+ User identity most often established through passwords, can be considered
+a special case of either keys or capabilities
+ Passwords must be kept secret
+ Frequent change of passwords
+ History to avoid repeats
+ Use of “non-guessable” passwords
+ Log all invalid access attempts (but not the passwords themselves)
+ Unauthorized transfer
+ Passwords may also either be encrypted or allowed to be used only once
+ Does encrypting passwords solve the exposure problem?
+ Might solve sniffing
+ Consider shoulder surfing
+ Consider Trojan horse keystroke logger
+ How are passwords stored at authenticating site?
+
+-- 44 of 53 --
+
+16.45 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Passwords
+ Encrypt to avoid having to keep secret
+ But keep secret anyway (i.e. Unix uses superuser-only readably file
+/etc/shadow)
+ Use algorithm easy to compute but difficult to invert
+ Only encrypted password stored, never decrypted
+ Add “salt” to avoid the same password being encrypted to the same value
+ One-time passwords
+ Use a function based on a seed to compute a password, both user and
+computer
+ Hardware device / calculator / key fob to generate the password
+ Changes very frequently
+ Biometrics
+ Some physical attribute (fingerprint, hand scan)
+ Multi-factor authentication
+ Need two or more factors for authentication
+ i.e. USB “dongle”, biometric measure, and password
+
+-- 45 of 53 --
+
+16.46 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Implementing Security Defenses
+ Defense in depth is most common security theory – multiple layers of security
+ Security policy describes what is being secured
+ Vulnerability assessment compares real state of system / network compared to
+security policy
+ Intrusion detection endeavors to detect attempted or successful intrusions
+ Signature-based detection spots known bad patterns
+ Anomaly detection spots differences from normal behavior
+ Can detect zero-day attacks
+ False-positives and false-negatives a problem
+ Virus protection
+ Searching all programs or programs at execution for known virus patterns
+ Or run in sandbox so can’t damage system
+ Auditing, accounting, and logging of all or specific system or network activities
+ Practice safe computing – avoid sources of infection, download from only
+“good” sites, etc
+
+-- 46 of 53 --
+
+16.47 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Firewalling to Protect Systems and Networks
+ A network firewall is placed between trusted and untrusted hosts
+ The firewall limits network access between these two security
+domains
+ Can be tunneled or spoofed
+ Tunneling allows disallowed protocol to travel within allowed
+protocol (i.e., telnet inside of HTTP)
+ Firewall rules typically based on host name or IP address
+which can be spoofed
+ Personal firewall is software layer on given host
+ Can monitor / limit traffic to and from the host
+ Application proxy firewall understands application protocol and
+can control them (i.e., SMTP)
+ System-call firewall monitors all important system calls and apply
+rules to them (i.e., this program can execute that system call)
+
+-- 47 of 53 --
+
+16.48 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Network Security Through Domain Separation Via Firewall
+
+-- 48 of 53 --
+
+16.49 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Computer Security Classifications
+ U.S. Department of Defense outlines four divisions of computer
+security: A, B, C, and D
+ D – Minimal security
+ C – Provides discretionary protection through auditing
+ Divided into C1 and C2
+ C1 identifies cooperating users with the same level of
+protection
+ C2 allows user-level access control
+ B – All the properties of C, however each object may have
+unique sensitivity labels
+ Divided into B1, B2, and B3
+ A – Uses formal design and verification techniques to ensure
+security
+
+-- 49 of 53 --
+
+16.50 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Security Defenses Summarized
+ By applying appropriate layers of defense, we can keep systems safe from
+all but the most persistent attackers. In summary, these layers may include
+the following:
+ Educate users about safe computing—don’t attach devices of unknown
+origin to the computer, don’t share passwords, use strong passwords,
+avoid falling for social engineering appeals, realize that an e-mail is not
+necessarily a private communication, and so on
+ Educate users about how to prevent phishing attacks—don’t click on
+email attachments or links from unknown (or even known) senders;
+authenticate (for example, via a phone call) that a request is legitimate
+ Use secure communication when possible
+ Physically protect computer hardware
+ Configure the operating system to minimize the attack surface; disable
+all unused services
+ Configure system daemons, privileges applications, and services to be
+as secure as possible
+
+-- 50 of 53 --
+
+16.51 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Security Defenses Summarized (cont.)
+ Use modern hardware and software, as they are likely to have up-to-
+date security features
+ Keep systems and applications up to date and patched
+ Only run applications from trusted sources (such as those that are code
+signed)
+ Enable logging and auditing; review the logs periodically, or automate
+alerts
+ Install and use antivirus software on systems susceptible to viruses, and
+keep the software up to date
+ Use strong passwords and passphrases, and don’t record them where
+they could be found
+ Use intrusion detection, firewalling, and other network-based protection
+systems as appropriate
+ For important facilities, use periodic vulnerability assessments and other
+testing methods to test security and response to incidents
+
+-- 51 of 53 --
+
+16.52 Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Security Defenses Summarized (cont.)
+ Encrypt mass-storage devices, and consider encrypting important
+individual files as well
+ Have a security policy for important systems and facilities, and keep it
+up to date
+
+-- 52 of 53 --
+
+Silberschatz, Galvin and Gagne ©2018	Operating System Concepts – 10th Edition
+Thank you
+
+-- 53 of 53 --
+
