@@ -33,21 +33,23 @@ function App() {
   }
 
   return (
-    <div className="app">
-      <Sidebar
-        view={view}
-        setView={setView}
-        store={store}
-        lectures={lectures}
-        mobileOpen={mobileOpen}
-        setMobileOpen={setMobileOpen}
-      />
-      <button className="menu-btn" onClick={() => setMobileOpen(o => !o)} aria-label="menu">
-        <span style={{ fontSize: 20 }}>≡</span>
-      </button>
-      <main className="main">{content}</main>
-      <Chat view={view} />
-    </div>
+    <React.Fragment>
+      <div className="app">
+        <Sidebar
+          view={view}
+          setView={setView}
+          store={store}
+          lectures={lectures}
+          mobileOpen={mobileOpen}
+          setMobileOpen={setMobileOpen}
+        />
+        <button className="menu-btn" onClick={() => setMobileOpen(o => !o)} aria-label="menu">
+          <span style={{ fontSize: 20 }}>≡</span>
+        </button>
+        <main className="main">{content}</main>
+      </div>
+      {ReactDOM.createPortal(<Chat view={view} />, document.body)}
+    </React.Fragment>
   );
 }
 
