@@ -73,6 +73,40 @@ function FinalExam({ store, update, setView }) {
   function jump(delta) {
     setPos(p => Math.max(0, Math.min(total - 1, p + delta)));
   }
+  function toggleBookmark() {
+    const q = questions[pos];
+    update(s => {
+      const lec = s.lectures[q.lec.id];
+      const isBookmarked = lec.bookmarked.includes(q.qIdx);
+      if (isBookmarked) {
+        lec.bookmarked = lec.bookmarked.filter(i => i !== q.qIdx);
+      } else {
+        lec.bookmarked = [...lec.bookmarked, q.qIdx];
+      }
+    });
+  }
+
+  // Keyboard shortcuts: 1/2/3/4 for options, arrow keys to nav
+  React.useEffect(() => {
+    if (stage !== 'running' || !questions[pos]) return;
+    function handleKeyDown(e) {
+      const num = parseInt(e.key, 10);
+      if (num >= 1 && num <= 4) {
+        e.preventDefault();
+        if (num <= questions[pos].opts.length) {
+          choose(num - 1);
+        }
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        jump(-1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        jump(1);
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [stage, pos, questions]);
   function finishExam() {
     const correctCount = questions.reduce((s, q, i) => s + (answers[i] === q.correct ? 1 : 0), 0);
     const pct = Math.round((correctCount / total) * 100);
@@ -241,7 +275,21 @@ function FinalExam({ store, update, setView }) {
         <div className="page-head">
           <div>
             <div className="eyebrow">{mistakesMode ? 'MISTAKES MODE · IN PROGRESS' : 'FINAL MIXED EXAM · IN PROGRESS'}</div>
-            <h1>Question {pos + 1}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h1 style={{ margin: 0 }}>Question {pos + 1}</h1>
+              <button
+                className="btn btn-ghost"
+                style={{
+                  padding: '6px 12px', fontSize: 18, background: 'none', border: 'none',
+                  color: store.lectures[q.lec.id].bookmarked.includes(q.qIdx) ? 'var(--warn)' : 'var(--muted)',
+                  marginTop: -2,
+                }}
+                onClick={toggleBookmark}
+                title="Bookmark this question"
+              >
+                {store.lectures[q.lec.id].bookmarked.includes(q.qIdx) ? '★' : '☆'}
+              </button>
+            </div>
             <div style={{ marginTop: 6, fontSize: 13, color: 'var(--muted)' }}>From Lecture {String(q.lec.id).padStart(2, '0')} · {q.lec.title}</div>
           </div>
           <div className="meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>

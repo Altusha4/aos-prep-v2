@@ -6,6 +6,15 @@ function App() {
 
   const lectures = window.AOS.getLectures();
 
+  // Apply theme to body
+  React.useEffect(() => {
+    if (store.theme === 'dark') {
+      document.body.classList.add('dark-theme');
+    } else {
+      document.body.classList.remove('dark-theme');
+    }
+  }, [store.theme]);
+
   // Scroll up on view change
   React.useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -41,6 +50,7 @@ function App() {
           view={view}
           setView={setView}
           store={store}
+          update={update}
           lectures={lectures}
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}

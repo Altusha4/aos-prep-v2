@@ -36,6 +36,24 @@
   --font-serif: 'Source Serif 4', Georgia, serif;
 }
 
+body.dark-theme {
+  --bg: #1a1a1a;
+  --bg-tint: #242424;
+  --surface: #2a2a2a;
+  --surface-2: #323232;
+  --ink: #e8e8e8;
+  --ink-2: #d0d0d0;
+  --muted: #999999;
+  --muted-2: #707070;
+  --line: #404040;
+  --line-2: #363636;
+  --accent-soft: #1a3a7a;
+  --accent-2-soft: #4a3a2a;
+  --good-soft: #1a4a3a;
+  --bad-soft: #5a3a2a;
+  --warn-soft: #4a4a2a;
+}
+
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {

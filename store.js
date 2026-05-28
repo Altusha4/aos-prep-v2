@@ -26,9 +26,15 @@
         quizMistakes: [], // array of {qIdx, chosenIdx}
         quizScore: null,  // last quiz: { correct, total, ts }
         bestScore: null,  // best quiz: number 0-100
+        bookmarked: [],   // array of qIdx marked with star
       };
     }
-    return { lectures, view: { kind: 'dashboard' }, finalExam: { lastScore: null, bestScore: null } };
+    return {
+      lectures,
+      view: { kind: 'dashboard' },
+      finalExam: { lastScore: null, bestScore: null },
+      theme: 'light', // 'light' | 'dark'
+    };
   }
 
   function saveStore(s) {

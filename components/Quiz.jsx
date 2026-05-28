@@ -28,6 +28,29 @@ function Quiz({ lectureId, store, update, setView }) {
     setDone(false);
   }, [lectureId]);
 
+  // Keyboard shortcuts: 1/2/3/4 for options, Enter to submit
+  React.useEffect(() => {
+    if (done || !questions) return;
+    function handleKeyDown(e) {
+      const num = parseInt(e.key, 10);
+      if (num >= 1 && num <= 4) {
+        e.preventDefault();
+        if (!revealed && num <= q.opts.length) {
+          choose(num - 1);
+        }
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!revealed && selected != null) {
+          submit();
+        } else if (revealed) {
+          nextQ();
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [done, questions, q, selected, revealed]);
+
   if (!lec) return <div className="empty">Lecture not loaded.</div>;
   if (!questions) return <div className="empty">Loading…</div>;
 
@@ -38,6 +61,18 @@ function Quiz({ lectureId, store, update, setView }) {
   function choose(i) {
     if (revealed) return;
     setSelected(i);
+  }
+  function toggleBookmark() {
+    update(s => {
+      const lec = s.lectures[lectureId];
+      const idx = q.origIdx;
+      const isBookmarked = lec.bookmarked.includes(idx);
+      if (isBookmarked) {
+        lec.bookmarked = lec.bookmarked.filter(i => i !== idx);
+      } else {
+        lec.bookmarked = [...lec.bookmarked, idx];
+      }
+    });
   }
   function submit() {
     if (selected == null) return;
@@ -160,7 +195,18 @@ function Quiz({ lectureId, store, update, setView }) {
           </div>
           <h1>{lec.title}</h1>
         </div>
-        <div className="meta">
+        <div className="meta" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button
+            className="btn btn-ghost"
+            style={{
+              padding: '6px 12px', fontSize: 16, background: 'none', border: 'none',
+              color: store.lectures[lectureId].bookmarked.includes(q.origIdx) ? 'var(--warn)' : 'var(--muted)',
+            }}
+            onClick={toggleBookmark}
+            title="Bookmark this question"
+          >
+            {store.lectures[lectureId].bookmarked.includes(q.origIdx) ? '★' : '☆'}
+          </button>
           <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)' }}>{pos + 1} / {total}</div>
         </div>
       </div>

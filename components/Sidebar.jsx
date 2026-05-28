@@ -1,5 +1,5 @@
 /* Sidebar.jsx — main navigation */
-function Sidebar({ view, setView, store, lectures, mobileOpen, setMobileOpen }) {
+function Sidebar({ view, setView, store, update, lectures, mobileOpen, setMobileOpen }) {
   const cx = window.AOS.classNames;
 
   const navItems = [
@@ -86,7 +86,24 @@ function Sidebar({ view, setView, store, lectures, mobileOpen, setMobileOpen }) 
           );
         })}
 
-        <div style={{ marginTop: 30, padding: '12px 14px', background: 'var(--bg-tint)', borderRadius: 10, fontSize: 11, color: 'var(--muted)', lineHeight: 1.5 }}>
+        <div style={{ marginTop: 30, display: 'flex', gap: 8, marginBottom: 12 }}>
+          <button
+            className="btn"
+            style={{
+              flex: 1, padding: '8px 12px', fontSize: 12,
+              background: store.theme === 'dark' ? 'var(--accent)' : 'var(--surface)',
+              border: `1px solid ${store.theme === 'dark' ? 'var(--accent)' : 'var(--line)'}`,
+              color: store.theme === 'dark' ? '#fff' : 'var(--ink)',
+              borderRadius: 8, cursor: 'pointer', fontWeight: 500,
+            }}
+            onClick={() => update(s => { s.theme = s.theme === 'dark' ? 'light' : 'dark'; })}
+            title="Toggle dark mode"
+          >
+            {store.theme === 'dark' ? '☀ Light' : '🌙 Dark'}
+          </button>
+        </div>
+
+        <div style={{ padding: '12px 14px', background: 'var(--bg-tint)', borderRadius: 10, fontSize: 11, color: 'var(--muted)', lineHeight: 1.5 }}>
           <div style={{ fontWeight: 600, color: 'var(--ink-2)', marginBottom: 4 }}>Tip · Совет</div>
           Press <span className="kbd">Space</span> to flip a flashcard.<br/>
           <span style={{ fontStyle: 'italic' }}>Нажмите Space, чтобы перевернуть карточку.</span>
