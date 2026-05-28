@@ -7,11 +7,20 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return defaultStore();
       const parsed = JSON.parse(raw);
-      // ensure all lectures present
+      // ensure all lectures present + new fields
       const def = defaultStore();
       for (let id = 1; id <= 10; id++) {
-        if (!parsed.lectures[id]) parsed.lectures[id] = def.lectures[id];
+        if (!parsed.lectures[id]) {
+          parsed.lectures[id] = def.lectures[id];
+        } else {
+          // Add any missing fields to existing lectures
+          if (!parsed.lectures[id].bookmarked) parsed.lectures[id].bookmarked = [];
+        }
       }
+      // Add theme if missing
+      if (!parsed.theme) parsed.theme = 'light';
+      // Add finalExam if missing
+      if (!parsed.finalExam) parsed.finalExam = { lastScore: null, bestScore: null };
       return parsed;
     } catch (e) {
       return defaultStore();
