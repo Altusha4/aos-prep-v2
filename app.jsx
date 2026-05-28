@@ -46,6 +46,7 @@ function App() {
         <span style={{ fontSize: 20 }}>≡</span>
       </button>
       <main className="main">{content}</main>
+      <Chat view={view} />
     </div>
   );
 }
