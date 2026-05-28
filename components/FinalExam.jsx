@@ -5,10 +5,20 @@ function FinalExam({ store, update, setView }) {
   const [questions, setQuestions] = React.useState([]);
   const [pos, setPos] = React.useState(0);
   const [answers, setAnswers] = React.useState([]); // chosen indices, parallel to questions
+  const [timeLeft, setTimeLeft] = React.useState(null); // seconds, null = untimed
+  const timerRef = React.useRef(null);
 
   const total = questions.length;
 
-  function buildExam(size, mode) {
+  // Timer effect
+  React.useEffect(() => {
+    if (stage !== 'running' || timeLeft === null) return;
+    if (timeLeft <= 0) { finishExam(); return; }
+    timerRef.current = setTimeout(() => setTimeLeft(t => t - 1), 1000);
+    return () => clearTimeout(timerRef.current);
+  }, [stage, timeLeft]);
+
+  function buildExam(size, mode, durationSeconds) {
     const pool = [];
     lectures.forEach(lec => {
       lec.quiz.forEach((q, qIdx) => {
@@ -26,6 +36,7 @@ function FinalExam({ store, update, setView }) {
     setQuestions(built);
     setAnswers(new Array(built.length).fill(null));
     setPos(0);
+    setTimeLeft(durationSeconds || null);
     setStage('running');
     window.scrollTo({ top: 0 });
   }
@@ -92,18 +103,39 @@ function FinalExam({ store, update, setView }) {
           </div>
         </div>
 
+        <div className="card" style={{ borderColor: 'var(--accent)', background: 'linear-gradient(135deg, var(--accent-soft) 0%, transparent 60%)', marginBottom: 16 }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 22 }}>⏱</span>
+            Exam Simulator — 40 questions · 50 minutes
+          </h3>
+          <p style={{ marginTop: 8, marginBottom: 6, fontSize: 14 }}>
+            Closest to the real AOS endterm. Timer auto-submits when time is up.
+          </p>
+          <p style={{ marginBottom: 20, fontSize: 13, color: 'var(--muted)', fontStyle: 'italic' }}>
+            Точная симуляция эндтерма: 40 вопросов, 50 минут. При истечении времени — автоматическая сдача.
+          </p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <button className="btn btn-primary" onClick={() => buildExam(40, 'all', 50 * 60)}>
+              Start Simulator →
+            </button>
+            <button className="btn" onClick={() => buildExam(40, 'exam-only', 50 * 60)} disabled={examOnly < 40}>
+              Real Qs only
+            </button>
+          </div>
+        </div>
+
         <div className="card">
-          <h3>Pick a length — full bank</h3>
+          <h3>Pick a length — full bank (no timer)</h3>
           <p style={{ marginTop: 6, marginBottom: 20, fontSize: 14 }}>
             Mixes real endterm questions with extra practice Qs across all lectures.
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             {[20, 40, 60].map(n => (
-              <button key={n} className="btn btn-primary" disabled={n > totalAvailable} onClick={() => buildExam(n, 'all')}>
+              <button key={n} className="btn btn-primary" disabled={n > totalAvailable} onClick={() => buildExam(n, 'all', null)}>
                 {n} questions
               </button>
             ))}
-            <button className="btn" onClick={() => buildExam(totalAvailable, 'all')}>
+            <button className="btn" onClick={() => buildExam(totalAvailable, 'all', null)}>
               All {totalAvailable}
             </button>
           </div>
@@ -121,8 +153,8 @@ function FinalExam({ store, update, setView }) {
             Реальные вопросы с эндтерма (оба варианта). Фокусированный повтор того, что было.
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <button className="btn" onClick={() => buildExam(30, 'exam-only')}>30 real Qs</button>
-            <button className="btn btn-primary" onClick={() => buildExam(examOnly, 'exam-only')}>All {examOnly} real Qs</button>
+            <button className="btn" onClick={() => buildExam(30, 'exam-only', null)}>30 real Qs</button>
+            <button className="btn btn-primary" onClick={() => buildExam(examOnly, 'exam-only', null)}>All {examOnly} real Qs</button>
           </div>
         </div>
 
@@ -139,6 +171,12 @@ function FinalExam({ store, update, setView }) {
   if (stage === 'running') {
     const q = questions[pos];
     const answered = answers.filter(a => a != null).length;
+    const timerMins = timeLeft !== null ? Math.floor(timeLeft / 60) : null;
+    const timerSecs = timeLeft !== null ? timeLeft % 60 : null;
+    const timerStr = timeLeft !== null
+      ? `${String(timerMins).padStart(2, '0')}:${String(timerSecs).padStart(2, '0')}`
+      : null;
+    const timerRed = timeLeft !== null && timeLeft < 300; // < 5 min
     return (
       <div>
         <div className="page-head">
@@ -147,8 +185,20 @@ function FinalExam({ store, update, setView }) {
             <h1>Question {pos + 1}</h1>
             <div style={{ marginTop: 6, fontSize: 13, color: 'var(--muted)' }}>From Lecture {String(q.lec.id).padStart(2, '0')} · {q.lec.title}</div>
           </div>
-          <div className="meta">
-            <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', marginBottom: 6 }}>
+          <div className="meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+            {timerStr && (
+              <div style={{
+                fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, letterSpacing: 2,
+                color: timerRed ? 'var(--bad)' : 'var(--ink)',
+                background: timerRed ? 'rgba(220,38,38,0.08)' : 'var(--surface)',
+                border: `2px solid ${timerRed ? 'var(--bad)' : 'var(--line)'}`,
+                borderRadius: 10, padding: '6px 16px',
+                animation: timerRed ? 'pulse 1s ease-in-out infinite' : 'none',
+              }}>
+                ⏱ {timerStr}
+              </div>
+            )}
+            <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)' }}>
               Answered {answered} / {total}
             </div>
             <div className="bar accent" style={{ width: 220 }}>
@@ -220,6 +270,7 @@ function FinalExam({ store, update, setView }) {
   }
 
   // stage === 'done'
+  clearTimeout(timerRef.current);
   const correctCount = questions.reduce((s, q, i) => s + (answers[i] === q.correct ? 1 : 0), 0);
   const pct = Math.round((correctCount / total) * 100);
   const wrong = questions.map((q, i) => ({ q, i, chosen: answers[i] })).filter(x => x.chosen !== x.q.correct);
