@@ -10,6 +10,34 @@ function FinalExam({ store, update, setView }) {
   const timerRef = React.useRef(null);
 
   const total = questions.length;
+  const [focusWarning, setFocusWarning] = React.useState(false);
+
+  // Fullscreen and focus detection
+  React.useEffect(() => {
+    if (stage !== 'running') return;
+
+    // Request fullscreen
+    if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+
+    // Detect tab switch
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        setFocusWarning(true);
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [stage]);
+
+  // Exit fullscreen on exam end
+  React.useEffect(() => {
+    if (stage === 'done' && document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+  }, [stage]);
 
   // Timer effect
   React.useEffect(() => {
@@ -270,8 +298,38 @@ function FinalExam({ store, update, setView }) {
       ? `${String(timerMins).padStart(2, '0')}:${String(timerSecs).padStart(2, '0')}`
       : null;
     const timerRed = timeLeft !== null && timeLeft < 300; // < 5 min
+
     return (
-      <div>
+      <React.Fragment>
+        {focusWarning && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.85)', zIndex: 10000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{
+              background: 'var(--surface)', borderRadius: 20, padding: '40px 30px',
+              maxWidth: 420, textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+              <h2 style={{ margin: '0 0 12px 0', color: 'var(--bad)', fontSize: 24 }}>Stay focused!</h2>
+              <p style={{ margin: '0 0 8px 0', color: 'var(--ink-2)', fontSize: 16, lineHeight: 1.5 }}>
+                Экзамен завтра. Вернись к вкладке и сосредоточься.
+              </p>
+              <p style={{ margin: '0 0 24px 0', color: 'var(--muted)', fontSize: 14 }}>
+                Exam is tomorrow. Come back and focus.
+              </p>
+              <button
+                className="btn btn-primary"
+                style={{ padding: '12px 28px', fontSize: 16, width: '100%' }}
+                onClick={() => setFocusWarning(false)}
+              >
+                Вернулся · I'm back
+              </button>
+            </div>
+          </div>
+        )}
+        <div>
         <div className="page-head">
           <div>
             <div className="eyebrow">{mistakesMode ? 'MISTAKES MODE · IN PROGRESS' : 'FINAL MIXED EXAM · IN PROGRESS'}</div>
@@ -372,7 +430,8 @@ function FinalExam({ store, update, setView }) {
             </button>
           </div>
         )}
-      </div>
+        </div>
+      </React.Fragment>
     );
   }
 
