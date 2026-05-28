@@ -92,7 +92,7 @@ function Chat({ view }) {
       }));
 
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -262,7 +262,7 @@ function Chat({ view }) {
               </button>
             </div>
             <div className="chat-footer">
-              Gemini 2.0 Flash · бесплатно ·{' '}
+              Gemini 1.5 Flash · бесплатно ·{' '}
               <span
                 style={{ cursor: 'pointer', textDecoration: 'underline', color: 'var(--muted)' }}
                 onClick={removeKey}
