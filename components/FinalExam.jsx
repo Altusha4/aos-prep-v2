@@ -6,6 +6,7 @@ function FinalExam({ store, update, setView }) {
   const [pos, setPos] = React.useState(0);
   const [answers, setAnswers] = React.useState([]); // chosen indices, parallel to questions
   const [timeLeft, setTimeLeft] = React.useState(null); // seconds, null = untimed
+  const [mistakesMode, setMistakesMode] = React.useState(false);
   const timerRef = React.useRef(null);
 
   const total = questions.length;
@@ -17,6 +18,30 @@ function FinalExam({ store, update, setView }) {
     timerRef.current = setTimeout(() => setTimeLeft(t => t - 1), 1000);
     return () => clearTimeout(timerRef.current);
   }, [stage, timeLeft]);
+
+  function buildMistakesExam() {
+    const pool = [];
+    lectures.forEach(lec => {
+      const mistakes = store.lectures[lec.id].quizMistakes;
+      mistakes.forEach(mm => {
+        const q = lec.quiz[mm.qIdx];
+        if (!q) return;
+        const perm = window.AOS.shuffle(q.opts.map((_, i) => i));
+        const opts = perm.map(i => q.opts[i]);
+        const correct = perm.indexOf(q.correct);
+        pool.push({ lec, qIdx: mm.qIdx, opts, correct, q: q.q, expl: q.expl, explRu: q.explRu, exam: q.exam });
+      });
+    });
+    if (pool.length === 0) return;
+    const built = window.AOS.shuffle(pool);
+    setQuestions(built);
+    setAnswers(new Array(built.length).fill(null));
+    setPos(0);
+    setTimeLeft(null);
+    setMistakesMode(true);
+    setStage('running');
+    window.scrollTo({ top: 0 });
+  }
 
   function buildExam(size, mode, durationSeconds) {
     const pool = [];
@@ -37,6 +62,7 @@ function FinalExam({ store, update, setView }) {
     setAnswers(new Array(built.length).fill(null));
     setPos(0);
     setTimeLeft(durationSeconds || null);
+    setMistakesMode(false);
     setStage('running');
     window.scrollTo({ top: 0 });
   }
@@ -51,15 +77,24 @@ function FinalExam({ store, update, setView }) {
     const correctCount = questions.reduce((s, q, i) => s + (answers[i] === q.correct ? 1 : 0), 0);
     const pct = Math.round((correctCount / total) * 100);
     update(s => {
-      s.finalExam = s.finalExam || { lastScore: null, bestScore: null };
-      s.finalExam.lastScore = pct;
-      if (s.finalExam.bestScore == null || pct > s.finalExam.bestScore) s.finalExam.bestScore = pct;
-      // Also log wrong answers as mistakes
+      if (!mistakesMode) {
+        s.finalExam = s.finalExam || { lastScore: null, bestScore: null };
+        s.finalExam.lastScore = pct;
+        if (s.finalExam.bestScore == null || pct > s.finalExam.bestScore) s.finalExam.bestScore = pct;
+      }
       questions.forEach((q, i) => {
-        if (answers[i] != null && answers[i] !== q.correct) {
-          const lec = s.lectures[q.lec.id];
-          const filtered = lec.quizMistakes.filter(m => m.qIdx !== q.qIdx);
-          lec.quizMistakes = [...filtered, { qIdx: q.qIdx, chosen: answers[i] }];
+        const lec = s.lectures[q.lec.id];
+        if (mistakesMode) {
+          // Remove from mistakes if answered correctly, keep if wrong
+          if (answers[i] === q.correct) {
+            lec.quizMistakes = lec.quizMistakes.filter(m => m.qIdx !== q.qIdx);
+          }
+        } else {
+          // Log wrong answers as mistakes
+          if (answers[i] != null && answers[i] !== q.correct) {
+            const filtered = lec.quizMistakes.filter(m => m.qIdx !== q.qIdx);
+            lec.quizMistakes = [...filtered, { qIdx: q.qIdx, chosen: answers[i] }];
+          }
         }
       });
     });
@@ -102,6 +137,30 @@ function FinalExam({ store, update, setView }) {
             <span className="delta">{store.finalExam?.lastScore != null ? `last: ${store.finalExam.lastScore}%` : 'no attempts yet'}</span>
           </div>
         </div>
+
+        {(() => {
+          const mistakeCount = lectures.reduce((s, l) => s + store.lectures[l.id].quizMistakes.length, 0);
+          return (
+            <div className="card" style={{ borderColor: 'var(--bad)', background: 'linear-gradient(135deg, rgba(179,66,42,0.06) 0%, transparent 60%)', marginBottom: 16 }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 22 }}>✕</span>
+                Mistakes Mode — {mistakeCount} question{mistakeCount !== 1 ? 's' : ''} to fix
+              </h3>
+              <p style={{ marginTop: 8, marginBottom: 6, fontSize: 14 }}>
+                Only the questions you got wrong. Answer correctly → removed from list. Wrong again → stays.
+              </p>
+              <p style={{ marginBottom: 20, fontSize: 13, color: 'var(--muted)', fontStyle: 'italic' }}>
+                Только вопросы, где вы ошиблись. Правильный ответ — удаляется из списка. Снова ошибка — остаётся.
+              </p>
+              {mistakeCount === 0
+                ? <div style={{ fontSize: 14, color: 'var(--good)', fontWeight: 500 }}>✓ Нет ошибок! Пройдите квизы чтобы они появились.</div>
+                : <button className="btn btn-primary" style={{ borderColor: 'var(--bad)', background: 'var(--bad)', color: '#fff' }} onClick={buildMistakesExam}>
+                    Retake {mistakeCount} mistakes →
+                  </button>
+              }
+            </div>
+          );
+        })()}
 
         <div className="card" style={{ borderColor: 'var(--accent)', background: 'linear-gradient(135deg, var(--accent-soft) 0%, transparent 60%)', marginBottom: 16 }}>
           <h3 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -181,7 +240,7 @@ function FinalExam({ store, update, setView }) {
       <div>
         <div className="page-head">
           <div>
-            <div className="eyebrow">FINAL MIXED EXAM · IN PROGRESS</div>
+            <div className="eyebrow">{mistakesMode ? 'MISTAKES MODE · IN PROGRESS' : 'FINAL MIXED EXAM · IN PROGRESS'}</div>
             <h1>Question {pos + 1}</h1>
             <div style={{ marginTop: 6, fontSize: 13, color: 'var(--muted)' }}>From Lecture {String(q.lec.id).padStart(2, '0')} · {q.lec.title}</div>
           </div>
@@ -274,7 +333,9 @@ function FinalExam({ store, update, setView }) {
   const correctCount = questions.reduce((s, q, i) => s + (answers[i] === q.correct ? 1 : 0), 0);
   const pct = Math.round((correctCount / total) * 100);
   const wrong = questions.map((q, i) => ({ q, i, chosen: answers[i] })).filter(x => x.chosen !== x.q.correct);
-  const grade = pct >= 90 ? 'Excellent' : pct >= 75 ? 'Solid' : pct >= 60 ? 'Passing' : 'Needs more prep';
+  const grade = mistakesMode
+    ? (pct === 100 ? 'All fixed! 🎉' : pct >= 75 ? 'Good progress' : 'Keep drilling')
+    : (pct >= 90 ? 'Excellent' : pct >= 75 ? 'Solid' : pct >= 60 ? 'Passing' : 'Needs more prep');
 
   // Per-lecture breakdown
   const byLec = {};
@@ -289,8 +350,11 @@ function FinalExam({ store, update, setView }) {
     <div>
       <div className="page-head">
         <div>
-          <div className="eyebrow">FINAL EXAM · RESULTS</div>
+          <div className="eyebrow">{mistakesMode ? 'MISTAKES MODE · RESULTS' : 'FINAL EXAM · RESULTS'}</div>
           <h1>{grade}</h1>
+          {mistakesMode && <p style={{ marginTop: 6, color: 'var(--muted)', fontSize: 14 }}>
+            {correctCount} removed from mistakes · {wrong.length} still need work
+          </p>}
         </div>
       </div>
 
